@@ -53,7 +53,9 @@ public:
     vector(vector&& mv) noexcept;
     vector operator=(const vector& copy) noexcept;
     vector operator=(vector&& mv) noexcept;
-    ~vector() = default;
+    ~vector() {
+        delete _data;
+    }
 
     const T& at(TIndexType index) const { return _data[index]; }
     const T& front() const { return _data[0]; }
