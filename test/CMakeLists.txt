@@ -10,6 +10,7 @@ FetchContent_Declare(
     FetchContent_MakeAvailable(Catch2)
     
 add_executable(unit_tests test_vec.cpp)
+set_property(TARGET unit_tests PROPERTY CXX_STANDARD 23)
 target_include_directories(unit_tests PRIVATE ../src)
 target_link_libraries(unit_tests PRIVATE Catch2::Catch2WithMain)
 
