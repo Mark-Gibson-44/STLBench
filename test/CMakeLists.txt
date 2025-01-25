@@ -42,6 +42,10 @@ endif()
 AddCoverage(unit_tests)
 include(Format)
 Format(unit_tests .)
+
+include(Checks)
+AddValgrind(unit_tests)
+
 target_link_libraries(unit_tests PRIVATE Catch2::Catch2WithMain)
 
 list(APPEND CMAKE_MODULE_PATH ${catch2_source_dir}/extras)

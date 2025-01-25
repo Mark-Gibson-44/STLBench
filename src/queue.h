@@ -2,6 +2,12 @@
 
 namespace BenchSTL {
 
-class queue {};
+template <typename T>
+class queue {
+    T data;
+    
+
+
+};
 
 }  // namespace BenchSTL

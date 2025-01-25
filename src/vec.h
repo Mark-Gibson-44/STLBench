@@ -12,9 +12,7 @@
     iterators(All of them)
 
     max_size
-    reserve
     shrink_to_fit
-    clear
     insert
     insert_range
     emplace
@@ -54,7 +52,11 @@ class vector {
   vector(vector&& mv) noexcept;
   vector operator=(const vector& copy) noexcept;
   vector operator=(vector&& mv) noexcept;
-  ~vector() { delete _data; }
+  ~vector() noexcept {
+    if(_capacity){
+      delete _data;
+    }  
+  }
 
   const T& at(TIndexType index) const { return _data[index]; }
   const T& front() const { return _data[0]; }
@@ -73,13 +75,32 @@ class vector {
       _data[_size] = val;
       ++_size;
     } else {
+      // Re alloc
       T* newAlloc = _alloc.allocate(_capacity + _capacityBuffer);
       std::memcpy(newAlloc, _data, sizeof(T) * _capacity);
       delete _data;
       _data = newAlloc;
       ++_size;
       _capacity += _capacityBuffer;
-      // Re alloc
+    }
+  }
+
+  void clear()
+  {
+    delete _data;
+    _size = 0;
+    _capacity = 0;
+  }
+
+  void reserve(TIndexType size)
+  {
+    if(size > this->_capacity)
+    {
+      T* newAlloc = _alloc.allocate(size);
+      std::memcpy(newAlloc, _data, sizeof(T) * _capacity);
+      delete _data;
+      _data = newAlloc;
+      _capacity = size;
     }
   }
 
@@ -96,4 +117,19 @@ class vector {
   }
 };
 
+template <typename T, typename Allocator>
+class smallVector
+{
+ private:
+  static constexpr TIndexType _capacityBuffer = 2;
+  static constexpr TIndexType _maxCapacity = std::numeric_limits<TIndexType>::max();
+  TIndexType _capacity;
+  TIndexType _size;
+  Allocator _alloc;
+  union{
+    T* _data;
+    T* _smallData;
+  };
+
+};
 }  // namespace Benchstl

@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <vector>
 
+#include "test_setup.h"
 #include "vec.h"
 
 // Testing alternate implementations of Vector
@@ -33,4 +34,32 @@ TEST_CASE("Test Pushback", "[SETUP]") {
     test.push_back(i);
   }
   REQUIRE(test.size() == 12);
+}
+
+TEST_CASE("Test Clear", "[SETUP]") {
+  Benchstl::vector<int, std::allocator<int>> test(2, std::allocator<int>());
+  for (int i = 0; i < 10; ++i) {
+    test.push_back(i);
+  }
+
+  test.clear();
+  REQUIRE(test.size() == 0);
+}
+
+template <typename T>
+static constexpr void push_backN(T& vec) {
+  for (int i = 0; i < 3; i++) {
+    vec.push_back(i);
+  }
+}
+
+TEST_CASE("Test setup func", "[SETUP]") {
+  Benchstl::vector<int, std::allocator<int>> testVec(0, std::allocator<int>());
+  std::vector<int> testRealVec(0);
+
+  // TODO, wrap calling runTest for each type with some sort of parameter packing
+  runTest(testVec, push_backN<decltype(testVec)&>);
+  runTest(testRealVec, push_backN<decltype(testRealVec)&>);
+  REQUIRE(testVec.size() == 3);
+  REQUIRE(testRealVec.size() == 3);
 }
