@@ -1,13 +1,7 @@
 #pragma once
 
-namespace BenchSTL
-{
+namespace BenchSTL {
 
-class queue
-{
-    
+class queue {};
 
-
-};
-
-} // BenchSTL
+}  // namespace BenchSTL

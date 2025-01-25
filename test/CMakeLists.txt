@@ -38,7 +38,10 @@ if(CMAKE_BUILD_TYPE STREQUAL Debug)
                         find ${CMAKE_BINARY_DIR} -type f
                         -name '*.gcda' -exec rm {} +)
 endif()           
+
 AddCoverage(unit_tests)
+include(Format)
+Format(unit_tests .)
 target_link_libraries(unit_tests PRIVATE Catch2::Catch2WithMain)
 
 list(APPEND CMAKE_MODULE_PATH ${catch2_source_dir}/extras)
