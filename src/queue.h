@@ -2,10 +2,11 @@
 
 namespace BenchSTL {
 
-template <typename T>
+template <typename T, typename Allocator>
 class queue {
-    T data;
+    T* data;
     
+    Allocator _alloc;
 
 
 };

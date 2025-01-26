@@ -104,6 +104,34 @@ class vector {
     }
   }
 
+  void resize(TIndexType count)
+  {
+    if(_size != count)
+    {
+      if(_size > count)
+      {
+        for(TIndexType removed = _size - 1; removed > count; --removed)
+        {
+          _alloc.destroy(_data[removed]);
+        }
+      }
+      else
+      {
+        if(_capacity < count)
+        {
+          reserve(count);
+        }
+      }
+      _size = count;
+    }
+
+  }
+
+  void resize(TIndexType count, const T& value/* = T()??*/)
+  {
+
+  }
+
   void pop_back() {
     _alloc.destroy(_data[_size]);
     --_size;
@@ -121,15 +149,63 @@ template <typename T, typename Allocator>
 class smallVector
 {
  private:
+  static constexpr TIndexType _smallVectorSize = 8;
   static constexpr TIndexType _capacityBuffer = 2;
   static constexpr TIndexType _maxCapacity = std::numeric_limits<TIndexType>::max();
   TIndexType _capacity;
   TIndexType _size;
   Allocator _alloc;
-  union{
-    T* _data;
-    T* _smallData;
+  union TData{
+    T* _bigData;
+    T* _smallData[_smallVectorSize];
   };
+  TData _data;
 
+public:
+  smallVector(uint16_t size, Allocator alloc) noexcept : _capacity(size), _size(size), _alloc(alloc) {
+    if(_capacity > _smallVectorSize)
+    {
+      _data._bigData = _alloc.allocate(_capacity);
+    }
+    else
+    {
+      _capacity = _smallVectorSize;
+    }
+  }
+  ~smallVector() noexcept {
+    if(_capacity > _smallVectorSize){
+      delete _data._bigData;
+    }  
+  }
+
+  const T& at(TIndexType index) const { return _GetData()[index]; }
+  const T& front() const { return _GetData()[0]; }
+  const T& back() const { return _GetData()[_size - 1]; }
+  TIndexType size() const noexcept { return _size; }
+  TIndexType capacity() const noexcept { return _capacity; }
+  bool empty() const noexcept { return _size == 0; }
+  T& operator[](TIndexType index) { return _GetData()[index]; }
+
+
+  void push_back(T val) {
+    if (_size < _capacity) {
+      _GetData()[_size] = val;
+      ++_size;
+    } else {
+      // Re alloc
+      T* newAlloc = _alloc.allocate(_capacity + _capacityBuffer);
+      std::memcpy(newAlloc, _GetData(), sizeof(T) * _capacity);
+      delete _GetData();
+      _data._bigData = newAlloc;
+      ++_size;
+      _capacity += _capacityBuffer;
+    }
+  }
+
+private:
+  T* _GetData() const
+  {
+    return _capacity > _smallVectorSize ? _data._bigData : (T*)_data._smallData;
+  }
 };
 }  // namespace Benchstl

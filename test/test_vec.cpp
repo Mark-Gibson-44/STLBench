@@ -1,4 +1,3 @@
-#include <catch2/catch_test_macros.hpp>
 #include <vector>
 
 #include "test_setup.h"
@@ -14,6 +13,19 @@ TEST_CASE("Basic Test", "[SETUP]") {
   test[3] = 2;
   REQUIRE(test.at(0) == 4);
   REQUIRE(test.at(3) == 2);
+}
+
+TEST_CASE("Basic small vec Test", "[SETUP]") {
+  Benchstl::smallVector<int, std::allocator<int>> test(4, std::allocator<int>());
+
+  test[3] = 2;
+  REQUIRE(test.at(3) == 2);
+  REQUIRE(test[3] == 2);
+
+  Benchstl::smallVector<int, std::allocator<int>> test2(10, std::allocator<int>());
+  test2[3] = 2;
+  REQUIRE(test2.at(3) == 2);
+  REQUIRE(test2[3] == 2);
 }
 
 TEST_CASE("Test copy construction", "[SETUP]") {
@@ -62,4 +74,13 @@ TEST_CASE("Test setup func", "[SETUP]") {
   runTest(testRealVec, push_backN<decltype(testRealVec)&>);
   REQUIRE(testVec.size() == 3);
   REQUIRE(testRealVec.size() == 3);
+}
+
+TEST_CASE("Test push_back pack expansion", "[SETUP]") {
+  Benchstl::vector<int, std::allocator<int>> bare(0, std::allocator<int>());
+  Benchstl::smallVector<int, std::allocator<int>> small(0, std::allocator<int>());
+  std::vector<int> standard(0);
+
+  setup(bare, small, standard);
+  checkContents(0, 1, bare, small, standard);
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <catch2/catch_test_macros.hpp>
 #include <functional>
 /*#include <iostream>
 #include <type_traits>
@@ -23,6 +24,35 @@ void checkMethodConsistency(ReturnType (T1::*method)(Arg), ReturnType (T2::*meth
 
 // template <class... Types>
 // void runFunc()
+
+template <typename T>
+void setup(T& single) {
+  single.push_back(1);
+}
+
+template <typename T, typename... T2>
+void setup(T& current, T2&... next) {
+  current.push_back(1);
+  setup(next...);
+}
+
+/*template <typename T, typename... T2>
+void setup(T& current, T2&... next)
+{
+  current.push_back(1);
+  setup(next...);
+}*/
+
+template <typename T>
+void checkContents(int index, int expected, T& single) {
+  REQUIRE(single[index] == expected);
+}
+
+template <typename T, typename... T2>
+void checkContents(int index, int expected, T& current, T2&... next) {
+  REQUIRE(current[index] == expected);
+  checkContents(index, expected, next...);
+}
 
 template <typename T>
 void runTest(T& vecType, std::function<void(T&)> func) {
