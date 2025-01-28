@@ -11,8 +11,6 @@
 
     iterators(All of them)
 
-    max_size
-    shrink_to_fit
     insert
     insert_range
     emplace
@@ -73,16 +71,16 @@ class vector {
   void push_back(T val) {
     if (_size < _capacity) {
       _data[_size] = val;
-      ++_size;
     } else {
       // Re alloc
       T* newAlloc = _alloc.allocate(_capacity + _capacityBuffer);
       std::memcpy(newAlloc, _data, sizeof(T) * _capacity);
       delete _data;
       _data = newAlloc;
-      ++_size;
+      _data[_size] = val;
       _capacity += _capacityBuffer;
     }
+    ++_size;
   }
 
   void clear()
@@ -132,9 +130,34 @@ class vector {
 
   }
 
+  void shrink_to_fit()
+  {
+    T* newAlloc = _alloc.allocate(_size);
+    std::memcpy(newAlloc, _data, sizeof(T) * _size);
+    delete _data;
+    _data = newAlloc;
+    _capacity = _size;
+  }
+
   void pop_back() {
     _alloc.destroy(_data[_size]);
     --_size;
+  }
+
+  template<class... Args>
+  void emplace_back(Args&&... args)
+  {
+    if(_size == _capacity)
+    {
+      T* newAlloc = _alloc.allocate(_capacity + _capacityBuffer);
+      std::memcpy(newAlloc, _data, sizeof(T) * _capacity);
+      delete _data;
+      _data = newAlloc;
+      _capacity += _capacityBuffer;
+    }
+    // Understand this better
+    std::construct_at(_data[_size], std::forward<Args>(args)...);
+    ++_size;
   }
 
  private:
