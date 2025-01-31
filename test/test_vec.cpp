@@ -1,3 +1,4 @@
+#include <string>
 #include <vector>
 
 #include "test_setup.h"
@@ -83,4 +84,57 @@ TEST_CASE("Test push_back pack expansion", "[SETUP]") {
 
   setup(bare, small, standard);
   checkContents(0, 1, bare, small, standard);
+}
+
+// TODO investigate string allocation issues
+TEST_CASE("Test non-int type vectors") {
+  struct testType {
+    char a;
+    char b;
+
+    bool operator==(testType rhs) const { return rhs.a == a && rhs.b == b; }
+  };
+  Benchstl::vector<testType, std::allocator<testType>> bare(0, std::allocator<testType>());
+  std::vector<testType> stl;
+  char front = 'a';
+  char back = 'z';
+  testType input;
+  for (uint16_t charNum = 0; charNum < 25; ++charNum) {
+    input.a = front + charNum;
+    input.b = back - charNum;
+    bare.push_back(input);
+    stl.push_back(input);
+  }
+  REQUIRE(bare == stl);
+}
+
+// TODO fix for strings
+/*TEST_CASE("Test string type vectors") {
+  std::vector<std::string> s;
+  Benchstl::vector<std::string, std::allocator<std::string>> s2(0, std::allocator<std::string>());
+
+  std::string input = "a";
+  for (int i = 0; i < 25; ++i) {
+    input += input[i] + 1;
+    s.push_back(input);
+    s2.push_back(input);
+  }
+  REQUIRE(s == s2);
+}*/
+
+TEST_CASE("Test array type vectors") {
+  int arr[4] = {1, 2, 3, 4};
+  std::vector<int*> s;
+  Benchstl::vector<int*, std::allocator<int*>> s2(0, std::allocator<int*>());
+
+  for (int i = 0; i < 25; ++i) {
+    s.push_back(arr);
+    s2.push_back(arr);
+  }
+
+  for (int i = 0; i < 25; i++) {
+    for (int j = 0; j < 4; j++) {
+      REQUIRE(s.at(i)[j] == s2.at(i)[j]);
+    }
+  }
 }

@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstring>
 #include <limits>
+#include <type_traits>
 #include <memory>
 
 // FUNCTIONS TO ADD
@@ -21,7 +22,7 @@
     swap
 
 */
-using TIndexType = uint16_t;
+using TIndexType = uint64_t;
 
 namespace Benchstl {
 
@@ -69,7 +70,9 @@ class vector {
   T& operator[](TIndexType index) { return _data[index]; }
 
   void push_back(T val) {
+    static_assert(!std::is_same<T, std::string>::value);
     if (_size < _capacity) {
+
       _data[_size] = val;
     } else {
       // Re alloc
@@ -156,8 +159,13 @@ class vector {
       _capacity += _capacityBuffer;
     }
     // Understand this better
-    std::construct_at(_data[_size], std::forward<Args>(args)...);
+    //std::construct_at(_data[_size], std::forward<Args>(args)...);
     ++_size;
+  }
+
+  bool operator== (const std::vector<T>& rhs) const
+  {
+    return rhs.size() == this->size() && compareContents(rhs);
   }
 
  private:
@@ -165,6 +173,18 @@ class vector {
     for (TIndexType insertIndex = 0; insertIndex < data._size; ++insertIndex) {
       _data[insertIndex] = data.at(insertIndex);
     }
+  }
+
+  bool compareContents(const std::vector<T>& vec) const
+  {
+    for(TIndexType index = 0; index < this->size(); ++index)
+    {
+      if(vec.at(index) != this->at(index))
+      {
+        return false;
+      }
+    }
+    return true;
   }
 };
 

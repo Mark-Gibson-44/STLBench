@@ -41,8 +41,8 @@ int main()
     double std_elapsed_time_ms = std::chrono::duration<double, std::milli>(Finish1-start).count();
     double impl_elapsed_time_ms = std::chrono::duration<double, std::milli>(Finish2 - Start2).count();
 
-    std::cout << "STD " << std_elapsed_time_ms << '\n';
-    std::cout << "IMPL " << impl_elapsed_time_ms << '\n';
+    std::cout << "STD " << std_elapsed_time_ms << " Vec size " << test.size() << '\n';
+    std::cout << "IMPL " << impl_elapsed_time_ms <<  " Vec size " << test2.size() << '\n';
     return 0;
 
 }
