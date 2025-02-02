@@ -53,7 +53,8 @@ class vector {
   vector operator=(vector&& mv) noexcept;
   ~vector() noexcept {
     if(_capacity){
-      delete _data;
+      //delete _data;
+      _alloc.deallocate(_data, _capacity);
     }  
   }
 
@@ -78,7 +79,8 @@ class vector {
       // Re alloc
       T* newAlloc = _alloc.allocate(_capacity + _capacityBuffer);
       std::memcpy(newAlloc, _data, sizeof(T) * _capacity);
-      delete _data;
+      //delete _data;
+      _alloc.deallocate(_data, _capacity);
       _data = newAlloc;
       _data[_size] = val;
       _capacity += _capacityBuffer;
@@ -88,7 +90,8 @@ class vector {
 
   void clear()
   {
-    delete _data;
+    //delete _data;
+    _alloc.deallocate(_data, _capacity);
     _size = 0;
     _capacity = 0;
   }
@@ -99,7 +102,8 @@ class vector {
     {
       T* newAlloc = _alloc.allocate(size);
       std::memcpy(newAlloc, _data, sizeof(T) * _capacity);
-      delete _data;
+      //delete _data;
+      _alloc.deallocate(_data, _capacity);
       _data = newAlloc;
       _capacity = size;
     }
@@ -137,7 +141,8 @@ class vector {
   {
     T* newAlloc = _alloc.allocate(_size);
     std::memcpy(newAlloc, _data, sizeof(T) * _size);
-    delete _data;
+    //delete _data;
+    _alloc.deallocate(_data, _capacity);
     _data = newAlloc;
     _capacity = _size;
   }
@@ -154,7 +159,8 @@ class vector {
     {
       T* newAlloc = _alloc.allocate(_capacity + _capacityBuffer);
       std::memcpy(newAlloc, _data, sizeof(T) * _capacity);
-      delete _data;
+      //delete _data;
+      _alloc.deallocate(_data, _capacity);
       _data = newAlloc;
       _capacity += _capacityBuffer;
     }

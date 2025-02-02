@@ -1,6 +1,7 @@
 #include <string>
 #include <vector>
 
+#include "Alloc.h"
 #include "test_setup.h"
 #include "vec.h"
 
@@ -47,6 +48,11 @@ TEST_CASE("Test Pushback", "[SETUP]") {
     test.push_back(i);
   }
   REQUIRE(test.size() == 12);
+}
+
+TEST_CASE("Test Alloc", "[SETUP]") {
+  Benchstl::vector<int, Benchstl::MemoryPoolAllocator<int>> test(2, Benchstl::MemoryPoolAllocator<int>(128, 32));
+  REQUIRE(test.size() == 2);
 }
 
 TEST_CASE("Test Clear", "[SETUP]") {
