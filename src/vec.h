@@ -39,7 +39,7 @@ class vector {
  public:
   static TIndexType maxCapacity() { return _maxCapacity; }
 
-  vector(uint16_t size, Allocator alloc) noexcept : _capacity(size + _capacityBuffer), _size(size), _alloc(alloc) {
+  vector(uint16_t size, Allocator&& alloc) noexcept : _capacity(size + _capacityBuffer), _size(size), _alloc(std::move(alloc)) {
     _data = _alloc.allocate(_capacity);
   }
 
