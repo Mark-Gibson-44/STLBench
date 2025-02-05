@@ -1,9 +1,10 @@
 #pragma once
 
+#include <cassert>
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <vector>
-#include <cassert>
 
 namespace Benchstl
 {
@@ -16,7 +17,44 @@ class MemoryPoolAllocator
         int _index;
         int _size;
         bool _used;
-        Header(int index, int size) : _index(index), _size(size), _used(false){};
+        Header* next = nullptr;
+        void insert(Header* node)
+        {
+            auto* iter = this;
+
+            while(iter->next != nullptr)
+            {
+                iter = iter->next;
+            }
+            iter->next = node;
+        }
+        std::optional<Header*> findFree()
+        {
+            Header* iter = this;
+            while(iter != nullptr)
+            {
+                if(!iter->_used)
+                {
+                    return iter;
+                }
+            }
+            return std::nullopt;
+        }
+        void erase(Header* node)
+        {
+            Header* iter = this;
+            while(iter != nullptr && iter->next != node)
+            {
+                iter = iter->next;
+            }
+            if(iter == nullptr)
+            {
+                assert(true);
+            }
+            iter->next = iter->next->next;
+        }
+
+        Header(int index, int size) : _index(index), _size(size), _used(false), next(nullptr){};
     };
 public:
     MemoryPoolAllocator(size_t poolSize, uint16_t chunkSize) : _poolSize(poolSize), _chunkSize(chunkSize) 
@@ -25,11 +63,17 @@ public:
         size_t numChunks = poolSize / chunkSize;
         for(size_t chunk = 0; chunk < numChunks; ++chunk)
         {
-            void* offset = (void*)(uintptr_t(_Memory) + chunk);
+            void* offset = (void*)(uintptr_t(_Memory) + (chunk * sizeof(Header)));
             // Use placement new
-            //Header add = {chunk, _chunkSize};
             Header* node = new(offset) Header{chunk, _chunkSize}; 
-            _chunks.push_back(node);
+            if(this->_freeChunksHead == nullptr)
+            {
+                this->_freeChunksHead = node;
+            }
+            else
+            {
+                this->_freeChunksHead->insert(node);
+            }
         }
 
     };
@@ -38,7 +82,7 @@ public:
     {
         _Memory = mv._Memory;
         mv._Memory = nullptr;
-        this->_chunks = std::move(mv._chunks);
+        this->_freeChunksHead = std::move(mv._freeChunksHead);
         this->_poolSize = mv._poolSize;
         this->_chunkSize = mv._chunkSize;
 
@@ -54,27 +98,36 @@ public:
         size_t numChunksNeeded = (sizeof(T) * size) / _chunkSize;
         if(numChunksNeeded > 1)
         {
-            assert(true);
+            assert(false);
             // TODO, make a real check
             return nullptr;
         }
-        auto unused_chunk = std::find_if(_chunks.begin(), _chunks.end(), [](const auto& node){ return node->_used == false; });
-        if(unused_chunk == _chunks.end())
+
+        auto opt_unused_chunk = _freeChunksHead->findFree();
+        if(!opt_unused_chunk.has_value())
         {
             return nullptr;
         }
-        Header* node = *unused_chunk;
+
+        Header* node = opt_unused_chunk.value();
         node->_used = true;
         T* alloc = (T*)(uintptr_t(node) + sizeof(Header));
-        //_chunks.erase(unused_chunk);
+        if(node == _freeChunksHead)
+        {
+            _freeChunksHead = _freeChunksHead->next;
+        }
+        else
+        {
+            _freeChunksHead->erase(node);
+        }
         return alloc;        
     }
 
     void deallocate(T* data, size_t size)
     {
-        Header* node = (Header*)(uintptr_t(data) - sizeof(Header));
+        Header* node = (Header*)(uintptr_t(data)/* - sizeof(Header)*/);
         node->_used = false;
-        _chunks.push_back(node);
+        _freeChunksHead->insert(node);
     }
     void destroy(T* element);
     size_t poolSize() const { return _poolSize; };
@@ -82,7 +135,7 @@ public:
 private:
     size_t _poolSize;
     uint16_t _chunkSize;
-    std::vector<Header*> _chunks;
+    Header* _freeChunksHead = nullptr;
     T* _Memory = nullptr;
 };
 
